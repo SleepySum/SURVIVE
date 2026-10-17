@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111714">
+  <meta name="description" content="An endless bunker survival simulation. Keep the systems alive. Keep the people breathing." />
+  <title>Root &amp; Decay — Bunker 04</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./root-decay.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <div class="app-frame">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true"><span class="root-line"></span><span class="root-dot"></span></div>
+        <div class="brand-copy">
+          <div class="wordmark">ROOT <span>&amp;</span> DECAY</div>
+          <div class="brand-subtitle">BUNKER 04 <span class="brand-sep">/</span> CONTINUITY LOG</div>
+        </div>
+      </div>
+
+      <div class="essential-counters" aria-label="Bunker essentials">
+        <div class="counter" data-resource="food">
+          <span class="counter-label"><span class="counter-dot food-dot"></span>FOOD</span>
+          <strong id="food-value">62</strong><span class="counter-unit">UNITS</span>
+        </div>
+        <div class="counter" data-resource="water">
+          <span class="counter-label"><span class="counter-dot water-dot"></span>WATER</span>
+          <strong id="water-value">67</strong><span class="counter-unit">UNITS</span>
+        </div>
+        <div class="counter" data-resource="power">
+          <span class="counter-label"><span class="counter-dot power-dot"></span>POWER</span>
+          <strong id="power-value">82</strong><span class="counter-unit">%</span>
+        </div>
+        <div class="counter day-counter" data-resource="day">
+          <span class="counter-label"><span class="counter-dot day-dot"></span>DAY</span>
+          <strong id="day-value">01</strong><span class="counter-unit">SURVIVING</span>
+        </div>
+      </div>
+
+      <button class="quiet-icon-button" id="sound-toggle" type="button" aria-label="Toggle sound cues" title="Toggle sound cues">
+        <span class="sound-glyph" aria-hidden="true">◖</span>
+      </button>
+    </header>
+
+    <main class="workspace">
+      <nav class="tool-rail" aria-label="Inspection drawers">
+        <div class="rail-caption">INSPECT</div>
+        <button class="rail-button" type="button" data-drawer="systems" aria-expanded="false" aria-controls="context-drawer">
+          <span class="rail-icon icon-power" aria-hidden="true">⌁</span><span>POWER TREE</span>
+        </button>
+        <button class="rail-button" type="button" data-drawer="tasks" aria-expanded="false" aria-controls="context-drawer">
+          <span class="rail-icon icon-queue" aria-hidden="true">≋</span><span>PRIORITY QUEUE</span>
+        </button>
+        <button class="rail-button" type="button" data-drawer="routes" aria-expanded="false" aria-controls="context-drawer">
+          <span class="rail-icon icon-route" aria-hidden="true">⌁</span><span>GRAPH ROUTE</span>
+        </button>
+        <div class="rail-bottom">
+          <span class="rail-indicator" aria-hidden="true"></span>
+          <span>SECTOR 04<br><b>UNDERGROUND</b></span>
+        </div>
+      </nav>
+
+      <section class="game-column" aria-label="Bunker operations">
+        <section class="world-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">FACILITY MAP <span class="eyebrow-rule"></span> 41.2M BELOW GRADE</p>
+              <h1>Lower shelter</h1>
+            </div>
+            <div class="live-status"><span class="live-pulse"></span><span id="live-label">SYSTEMS HOLDING</span></div>
+          </div>
+
+          <div class="canvas-shell">
+            <canvas id="bunker-canvas" aria-label="Interactive bunker room graph. Select a room to inspect a route."></canvas>
+            <div class="map-coordinates" aria-hidden="true"><span>PLAN 04-A</span><span>GRID / 120</span></div>
+            <div class="map-legend" aria-hidden="true">
+              <span><i class="legend-mark legend-safe"></i>SAFE</span>
+              <span><i class="legend-mark legend-risk"></i>HAZARD</span>
+              <span><i class="legend-mark legend-breach"></i>BREACH</span>
+            </div>
+            <div id="boot-message" class="boot-message" role="status">Connecting to the C++ simulation core…</div>
+          </div>
+
+          <div class="event-line" aria-live="polite">
+            <span class="event-label">LAST SIGNAL</span>
+            <span class="event-marker" aria-hidden="true">/</span>
+            <span id="recent-event">A quiet shift. The bunker holds—for now.</span>
+          </div>
+
+          <div class="operations-bar">
+            <div class="day-meter">
+              <div class="day-meter-label"><span>DAY CYCLE</span><span id="cycle-label">01 / 34s</span></div>
+              <div class="meter-track"><span id="day-progress"></span></div>
+            </div>
+            <div class="action-buttons">
+              <button class="button button-quiet" id="pause-button" type="button"><span class="button-symbol">Ⅱ</span><span>PAUSE</span></button>
+              <button class="button button-quiet" id="advance-button" type="button"><span class="button-symbol">↦</span><span>END DAY</span></button>
+              <button class="button button-amber" id="scavenge-button" type="button"><span class="button-symbol">↗</span><span>DISPATCH SCAVENGE</span></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="task-hud" aria-labelledby="task-hud-title">
+          <div class="task-hud-heading">
+            <div>
+              <p class="eyebrow">LABOR ASSIGNMENT <span class="eyebrow-rule"></span> INMATE REGISTRY</p>
+              <h2 id="task-hud-title">Active duties</h2>
+            </div>
+            <div class="crew-readout"><span class="crew-dot"></span><span id="crew-count">08</span><span class="crew-label">AVAILABLE / WORKING</span></div>
+          </div>
+          <div id="task-cards" class="task-cards" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <aside id="context-drawer" class="context-drawer" aria-hidden="true" aria-labelledby="drawer-title" hidden>
+        <div class="drawer-heading">
+          <div><p class="eyebrow" id="drawer-kicker">STRUCTURE</p><h2 id="drawer-title">Power tree</h2></div>
+          <button class="drawer-close" type="button" id="drawer-close" aria-label="Close drawer">×</button>
+        </div>
+        <div class="drawer-summary" id="drawer-summary"></div>
+        <div class="drawer-content" id="drawer-content"></div>
+        <div class="drawer-footnote" id="drawer-footnote">LOCAL STATE / UPDATED EACH TICK</div>
+      </aside>
+    </main>
+
+    <footer class="status-footer">
+      <span><i class="footer-led"></i>LOCAL SYSTEM <b id="wasm-state">WAITING FOR WASM</b></span>
+      <span>NO EXTRACTION WINDOW <i class="footer-divider">/</i> NO END STATE</span>
+    </footer>
+  </div>
+</body>
+</html>
