@@ -67,6 +67,7 @@ struct Inmate {
     float health{100.0f};
     float panic{0.0f};
     std::uint32_t room_id{1};
+    std::uint32_t home_room_id{1};
     InmateStatus status{InmateStatus::Idle};
     std::string assigned_task;
 };
@@ -188,13 +189,28 @@ public:
     bool system_operational_at(int index) const;
 
     int inmate_count() const;
+    std::uint32_t inmate_id_at(int index) const;
     std::string inmate_name_at(int index) const;
     std::string inmate_status_at(int index) const;
     std::string inmate_task_at(int index) const;
     float inmate_fatigue_at(int index) const;
     float inmate_health_at(int index) const;
     float inmate_panic_at(int index) const;
+    float inmate_morale_at(int index) const;
     std::uint32_t inmate_room_at(int index) const;
+    bool assign_inmate_to_room_task(std::uint32_t inmate_id, std::uint32_t room_id, int kind_int);
+    bool treat_inmate(std::uint32_t inmate_id);
+    void repair_system_node(std::uint32_t system_id, float amount);
+    void damage_system_node(std::uint32_t system_id, float amount);
+    void trigger_breach_event(std::uint32_t room_id);
+    std::uint32_t inmate_home_room_at(int index) const;
+
+    std::uint32_t current_wave() const;
+    float wave_timer() const;
+    void start_next_wave();
+    bool defend_room_with_inmate(std::uint32_t room_id, std::uint32_t inmate_id);
+    bool auto_defend_room(std::uint32_t room_id);
+    bool allocate_crew_rations();
 
     int task_count() const;
     TaskSnapshot task_at(int index) const;
@@ -209,6 +225,9 @@ public:
 
 private:
     std::uint32_t day_{1};
+    std::uint32_t current_wave_{1};
+    float wave_clock_{0.0f};
+    float wave_interval_{24.0f};
     float food_{62.0f};
     float water_{67.0f};
     float power_percent_{82.0f};
@@ -258,6 +277,7 @@ private:
     void add_task_to_emergency(const ActiveTask& task, float severity_increase);
     void spread_zombie_pressure();
     void trigger_daily_event();
+    bool has_pending_defend(std::uint32_t room_id) const;
     void update_inmate_condition(float food_burn, float water_burn);
     void push_telemetry(const DailyMetric& metric);
     void set_corridor_state(std::uint32_t from_room, std::uint32_t to_room,

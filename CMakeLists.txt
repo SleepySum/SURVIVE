@@ -16,7 +16,7 @@ if(EMSCRIPTEN)
         --bind
         "-sMODULARIZE=1"
         "-sEXPORT_NAME=RootDecayModule"
-        "-sENVIRONMENT=web"
+        "-sENVIRONMENT=web,node"
         "-sALLOW_MEMORY_GROWTH=1"
         "-sEXIT_RUNTIME=0"
     )

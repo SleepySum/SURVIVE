@@ -4,92 +4,209 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111714">
-  <meta name="description" content="An endless bunker survival simulation. Keep the systems alive. Keep the people breathing." />
-  <title>Root &amp; Decay — Bunker 04</title>
+  <meta name="description" content="Root &amp; Decay — A 2D apocalypse bunker survival simulation with C++17/WASM engine." />
+  <title>Root &amp; Decay — Apocalypse Bunker Survival</title>
   <link rel="stylesheet" href="./style.css">
   <script defer src="./root-decay.js"></script>
   <script defer src="./app.js"></script>
 </head>
 <body>
   <div class="app-frame">
+    <!-- Top Bar: Minimalist, matching screenshot -->
     <header class="topbar">
       <div class="brand-block">
         <div class="brand-mark" aria-hidden="true"><span class="root-line"></span><span class="root-dot"></span></div>
         <div class="brand-copy">
           <div class="wordmark">ROOT <span>&amp;</span> DECAY</div>
-          <div class="brand-subtitle">BUNKER 04 <span class="brand-sep">/</span> CONTINUITY LOG</div>
+          <div class="brand-subtitle">SECTOR 04 <span class="brand-sep">/</span> SUBTERRANEAN</div>
         </div>
       </div>
 
       <div class="essential-counters" aria-label="Bunker essentials">
-        <div class="counter" data-resource="food">
-          <span class="counter-label"><span class="counter-dot food-dot"></span>FOOD</span>
-          <strong id="food-value">62</strong><span class="counter-unit">UNITS</span>
+        <!-- Inmate crew counter pill -->
+        <div class="crew-pill" id="crew-pill" title="Total inmates / available">
+          <span class="crew-icon">👥</span>
+          <span class="crew-text">INMATES: <strong id="crew-living">8</strong> / <span id="crew-total">8</span> (<span id="crew-idle">4</span> IDLE)</span>
         </div>
-        <div class="counter" data-resource="water">
-          <span class="counter-label"><span class="counter-dot water-dot"></span>WATER</span>
-          <strong id="water-value">67</strong><span class="counter-unit">UNITS</span>
+
+        <!-- Zombie Wave Pill -->
+        <div class="wave-pill" id="wave-pill" title="Zombie incursion wave level and countdown">
+          <span class="wave-icon">🧟</span>
+          <span class="wave-text">WAVE <strong id="wave-number">1</strong></span>
         </div>
-        <div class="counter" data-resource="power">
-          <span class="counter-label"><span class="counter-dot power-dot"></span>POWER</span>
-          <strong id="power-value">82</strong><span class="counter-unit">%</span>
+
+        <!-- Food Counter -->
+        <div class="counter" data-resource="food" title="Food Rations">
+          <span class="counter-icon">🍴</span>
+          <strong id="food-value">62</strong>
         </div>
-        <div class="counter day-counter" data-resource="day">
-          <span class="counter-label"><span class="counter-dot day-dot"></span>DAY</span>
-          <strong id="day-value">01</strong><span class="counter-unit">SURVIVING</span>
+
+        <!-- Water Counter -->
+        <div class="counter" data-resource="water" title="Clean Water Reserves">
+          <span class="counter-icon">💧</span>
+          <strong id="water-value">67</strong>
+        </div>
+
+        <!-- Power Counter with Battery Pill -->
+        <div class="counter power-counter" data-resource="power" title="Grid Power Level">
+          <span class="counter-icon">⚡</span>
+          <div class="power-pill">
+            <div class="power-pill-fill" id="power-pill-fill" style="width: 82%;"></div>
+            <strong id="power-value">82%</strong>
+          </div>
+        </div>
+
+        <!-- Stylized Day Counter -->
+        <div class="day-badge" title="Days survived">
+          <span class="day-prefix">DAY</span>
+          <strong id="day-value">01</strong>
         </div>
       </div>
 
-      <button class="quiet-icon-button" id="sound-toggle" type="button" aria-label="Toggle sound cues" title="Toggle sound cues">
-        <span class="sound-glyph" aria-hidden="true">◖</span>
+      <button class="quiet-icon-button" id="sound-toggle" type="button" aria-label="Toggle sound cues" title="Toggle audio / hum">
+        <span class="sound-glyph" id="sound-glyph" aria-hidden="true">🔊</span>
       </button>
     </header>
 
     <main class="workspace">
+      <!-- Left Tool Rail for Contextual Inspection Drawers -->
       <nav class="tool-rail" aria-label="Inspection drawers">
         <div class="rail-caption">INSPECT</div>
-        <button class="rail-button" type="button" data-drawer="systems" aria-expanded="false" aria-controls="context-drawer">
+        <button class="rail-button" type="button" data-drawer="systems" aria-expanded="false" aria-controls="context-drawer" title="Inspect N-ary Dependency Tree">
           <span class="rail-icon icon-power" aria-hidden="true">⌁</span><span>POWER TREE</span>
         </button>
-        <button class="rail-button" type="button" data-drawer="tasks" aria-expanded="false" aria-controls="context-drawer">
+        <button class="rail-button" type="button" data-drawer="tasks" aria-expanded="false" aria-controls="context-drawer" title="Inspect Priority Queue & Routine FIFO">
           <span class="rail-icon icon-queue" aria-hidden="true">≋</span><span>PRIORITY QUEUE</span>
         </button>
-        <button class="rail-button" type="button" data-drawer="routes" aria-expanded="false" aria-controls="context-drawer">
+        <button class="rail-button" type="button" data-drawer="routes" aria-expanded="false" aria-controls="context-drawer" title="Inspect Bunker Graph & A* Routes">
           <span class="rail-icon icon-route" aria-hidden="true">⌁</span><span>GRAPH ROUTE</span>
         </button>
+        <button class="rail-button" type="button" data-drawer="crew" aria-expanded="false" aria-controls="context-drawer" title="Individual crew roster & control">
+          <span class="rail-icon icon-queue" aria-hidden="true">👥</span><span>CREW ROSTER</span>
+        </button>
+        <div class="rail-separator"></div>
+        <div class="rail-caption">ACTIONS</div>
+        <button class="rail-action-btn" type="button" id="rail-scavenge-btn" title="Dispatch outer yard scavenge run">
+          <span class="action-glyph">↗</span><span>SCAVENGE</span>
+        </button>
+        <button class="rail-action-btn btn-rations" type="button" id="rail-rations-btn" title="Allocate rations to crew (feed & water)">
+          <span class="action-glyph">🍖</span><span>RATIONS</span>
+        </button>
+        <button class="rail-action-btn btn-wave" type="button" id="rail-wave-btn" title="Trigger next zombie incursion wave">
+          <span class="action-glyph">🧟</span><span>NEXT WAVE</span>
+        </button>
+        <button class="rail-action-btn" type="button" id="rail-breach-test-btn" title="Trigger corridor breach for testing">
+          <span class="action-glyph">⚠️</span><span>TEST BREACH</span>
+        </button>
+
         <div class="rail-bottom">
           <span class="rail-indicator" aria-hidden="true"></span>
-          <span>SECTOR 04<br><b>UNDERGROUND</b></span>
+          <span>BUNKER 04<br><b>UNDERGROUND</b></span>
         </div>
       </nav>
 
+      <!-- Center Game Column: Canvas bunker view & HUD -->
       <section class="game-column" aria-label="Bunker operations">
         <section class="world-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">FACILITY MAP <span class="eyebrow-rule"></span> 41.2M BELOW GRADE</p>
-              <h1>Lower shelter</h1>
+              <p class="eyebrow">FACILITY CROSS-SECTION <span class="eyebrow-rule"></span> SUB-LEVEL CUTAWAY</p>
+              <h1 id="facility-title">Bunker Complex 04</h1>
             </div>
             <div class="live-status"><span class="live-pulse"></span><span id="live-label">SYSTEMS HOLDING</span></div>
           </div>
 
-          <div class="canvas-shell">
-            <canvas id="bunker-canvas" aria-label="Interactive bunker room graph. Select a room to inspect a route."></canvas>
-            <div class="map-coordinates" aria-hidden="true"><span>PLAN 04-A</span><span>GRID / 120</span></div>
+          <div class="canvas-shell" id="canvas-shell">
+            <canvas id="bunker-canvas" aria-label="Interactive cutaway bunker view. Click rooms or inmates to inspect."></canvas>
+
+            <!-- Low Power / Emergency Banner -->
+            <div id="emergency-banner" class="emergency-banner" hidden>
+              <span class="emergency-blink">⚠️</span>
+              <span id="emergency-text">LOW POWER — AUXILIARY PROTOCOL ENGAGED</span>
+            </div>
+
+            <!-- Game Over Overlay -->
+            <div id="gameover-overlay" class="gameover-overlay" hidden>
+              <div class="gameover-card">
+                <div class="gameover-icon">💀</div>
+                <h2 class="gameover-title">GAME OVER</h2>
+                <p class="gameover-sub" id="gameover-sub">Every survivor lost. The bunker has gone silent.</p>
+                <div class="gameover-stats" id="gameover-stats"></div>
+                <button type="button" class="gameover-retry" id="retry-button">⟳ RETRY — START FROM DAY 01</button>
+              </div>
+            </div>
+
+            <!-- Inmate Details Floating Panel (bottom-left, matches screenshot) -->
+            <div id="inmate-panel" class="inmate-panel" hidden>
+              <div class="inmate-panel-header">
+                <div class="inmate-avatar" id="inmate-panel-avatar">👤</div>
+                <div class="inmate-panel-info">
+                  <div class="inmate-panel-name" id="inmate-panel-name">ALICE</div>
+                  <div class="inmate-panel-room" id="inmate-panel-room">Level 2: Dormitories</div>
+                </div>
+                <button class="panel-close-btn" id="inmate-panel-close" type="button" title="Close panel">×</button>
+              </div>
+              <div class="inmate-stat-rows">
+                <div class="inmate-stat-row">
+                  <span class="stat-lbl">Health</span>
+                  <div class="stat-bar-track"><div class="stat-bar-fill fill-health" id="inmate-stat-health" style="width: 80%;"></div></div>
+                  <span class="stat-val" id="inmate-val-health">80%</span>
+                </div>
+                <div class="inmate-stat-row">
+                  <span class="stat-lbl">Morale</span>
+                  <div class="stat-bar-track"><div class="stat-bar-fill fill-morale" id="inmate-stat-morale" style="width: 75%;"></div></div>
+                  <span class="stat-val" id="inmate-val-morale">75%</span>
+                </div>
+                <div class="inmate-stat-row">
+                  <span class="stat-lbl">Fatigue</span>
+                  <div class="stat-bar-track"><div class="stat-bar-fill fill-fatigue" id="inmate-stat-fatigue" style="width: 40%;"></div></div>
+                  <span class="stat-val" id="inmate-val-fatigue">40%</span>
+                </div>
+              </div>
+              <div class="inmate-panel-task-box">
+                <span class="task-box-lbl">ASSIGNMENT:</span>
+                <span class="task-box-val" id="inmate-panel-task">Defend Breach (Priority 1)</span>
+              </div>
+              <div class="inmate-panel-actions">
+                <button type="button" class="panel-action-btn btn-heal" id="btn-inmate-heal" title="Spend 4 Food & 4 Water to heal and calm this inmate">MED RATIONS</button>
+                <button type="button" class="panel-action-btn btn-assign" id="btn-inmate-reassign" title="Assign this inmate to the selected room">ASSIGN HERE</button>
+              </div>
+            </div>
+
+            <!-- Room Quick Actions Panel (bottom-right of canvas) -->
+            <div id="room-panel" class="room-panel" hidden>
+              <div class="room-panel-header">
+                <strong id="room-panel-name">Level 2: Dormitories</strong>
+                <button class="panel-close-btn" id="room-panel-close" type="button">×</button>
+              </div>
+              <div class="room-panel-stats">
+                <span>Hazard: <b id="room-panel-hazard">8%</b></span>
+                <span>Zombies: <b id="room-panel-zombies">0%</b></span>
+              </div>
+              <div class="room-panel-actions">
+                <button type="button" class="room-btn" id="room-btn-work">DISPATCH WORK</button>
+                <button type="button" class="room-btn btn-danger" id="room-btn-defend">DEFEND ROOM</button>
+              </div>
+            </div>
+
+            <!-- Coordinate / Scheme marks -->
+            <div class="map-coordinates" aria-hidden="true"><span>PLAN 04-B</span><span>CUTAWAY / ELEVATION</span></div>
             <div class="map-legend" aria-hidden="true">
-              <span><i class="legend-mark legend-safe"></i>SAFE</span>
+              <span><i class="legend-mark legend-safe"></i>NORMAL</span>
               <span><i class="legend-mark legend-risk"></i>HAZARD</span>
               <span><i class="legend-mark legend-breach"></i>BREACH</span>
             </div>
-            <div id="boot-message" class="boot-message" role="status">Connecting to the C++ simulation core…</div>
+            <div id="boot-message" class="boot-message" role="status">Initializing WebAssembly core…</div>
           </div>
 
+          <!-- Event Ticker -->
           <div class="event-line" aria-live="polite">
-            <span class="event-label">LAST SIGNAL</span>
+            <span class="event-label">SIGNAL LOG</span>
             <span class="event-marker" aria-hidden="true">/</span>
             <span id="recent-event">A quiet shift. The bunker holds—for now.</span>
           </div>
 
+          <!-- Operations Bar: Cycle bar + Controls -->
           <div class="operations-bar">
             <div class="day-meter">
               <div class="day-meter-label"><span>DAY CYCLE</span><span id="cycle-label">01 / 34s</span></div>
@@ -98,23 +215,27 @@
             <div class="action-buttons">
               <button class="button button-quiet" id="pause-button" type="button"><span class="button-symbol">Ⅱ</span><span>PAUSE</span></button>
               <button class="button button-quiet" id="advance-button" type="button"><span class="button-symbol">↦</span><span>END DAY</span></button>
-              <button class="button button-amber" id="scavenge-button" type="button"><span class="button-symbol">↗</span><span>DISPATCH SCAVENGE</span></button>
+              <button class="button button-amber" id="scavenge-button" type="button"><span class="button-symbol">↗</span><span>SCAVENGE</span></button>
+              <button class="button button-emerald" id="allocate-rations-btn" type="button" title="Feed and water all inmates (restores health & reduces fatigue)"><span class="button-symbol">🍖</span><span>ALLOCATE RATIONS</span></button>
+              <button class="button button-danger" id="next-wave-btn" type="button" title="Trigger the next zombie attack wave"><span class="button-symbol">⚔️</span><span>NEXT WAVE</span></button>
             </div>
           </div>
         </section>
 
+        <!-- Streamlined Task HUD: Modern flat-vector task cards matching screenshot -->
         <section class="task-hud" aria-labelledby="task-hud-title">
           <div class="task-hud-heading">
             <div>
-              <p class="eyebrow">LABOR ASSIGNMENT <span class="eyebrow-rule"></span> INMATE REGISTRY</p>
+              <p class="eyebrow">TASK QUEUE <span class="eyebrow-rule"></span> PRIORITY HEAP &amp; FIFO</p>
               <h2 id="task-hud-title">Active duties</h2>
             </div>
-            <div class="crew-readout"><span class="crew-dot"></span><span id="crew-count">08</span><span class="crew-label">AVAILABLE / WORKING</span></div>
+            <div class="crew-readout"><span class="crew-dot"></span><span id="crew-count">08</span><span class="crew-label">INMATES ASSIGNED</span></div>
           </div>
           <div id="task-cards" class="task-cards" aria-live="polite"></div>
         </section>
       </section>
 
+      <!-- Contextual Drawers: Power Tree, Priority Queue, Graph Route -->
       <aside id="context-drawer" class="context-drawer" aria-hidden="true" aria-labelledby="drawer-title" hidden>
         <div class="drawer-heading">
           <div><p class="eyebrow" id="drawer-kicker">STRUCTURE</p><h2 id="drawer-title">Power tree</h2></div>
@@ -127,8 +248,8 @@
     </main>
 
     <footer class="status-footer">
-      <span><i class="footer-led"></i>LOCAL SYSTEM <b id="wasm-state">WAITING FOR WASM</b></span>
-      <span>NO EXTRACTION WINDOW <i class="footer-divider">/</i> NO END STATE</span>
+      <span><i class="footer-led" id="footer-led"></i>CORE RUNTIME <b id="wasm-state">CONNECTING</b></span>
+      <span>CLICK ROOM / INMATE TO INTERACT <i class="footer-divider">/</i> ENDLESS SURVIVAL</span>
     </footer>
   </div>
 </body>

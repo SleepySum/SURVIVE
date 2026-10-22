@@ -56,7 +56,34 @@ std::string get_inmate_task(int index) { return game().inmate_task_at(index); }
 float get_inmate_fatigue(int index) { return game().inmate_fatigue_at(index); }
 float get_inmate_health(int index) { return game().inmate_health_at(index); }
 float get_inmate_panic(int index) { return game().inmate_panic_at(index); }
+float get_inmate_morale(int index) { return game().inmate_morale_at(index); }
+int get_inmate_id(int index) { return static_cast<int>(game().inmate_id_at(index)); }
 int get_inmate_room(int index) { return static_cast<int>(game().inmate_room_at(index)); }
+
+bool assign_inmate(int inmate_id, int room_id, int task_kind) {
+    return game().assign_inmate_to_room_task(static_cast<std::uint32_t>(inmate_id), static_cast<std::uint32_t>(room_id), task_kind);
+}
+bool treat_inmate(int inmate_id) {
+    return game().treat_inmate(static_cast<std::uint32_t>(inmate_id));
+}
+void repair_system(int system_id, float amount) {
+    game().repair_system_node(static_cast<std::uint32_t>(system_id), amount);
+}
+void damage_system(int system_id, float damage) {
+    game().damage_system_node(static_cast<std::uint32_t>(system_id), damage);
+}
+void trigger_breach(int room_id) {
+    game().trigger_breach_event(static_cast<std::uint32_t>(room_id));
+}
+int get_current_wave() { return static_cast<int>(game().current_wave()); }
+float get_wave_timer() { return game().wave_timer(); }
+void start_wave() { game().start_next_wave(); }
+bool defend_room(int room_id, int inmate_id) {
+    if (inmate_id <= 0) return game().auto_defend_room(static_cast<std::uint32_t>(room_id));
+    return game().defend_room_with_inmate(static_cast<std::uint32_t>(room_id), static_cast<std::uint32_t>(inmate_id));
+}
+bool allocate_rations() { return game().allocate_crew_rations(); }
+int get_inmate_home_room(int index) { return static_cast<int>(game().inmate_home_room_at(index)); }
 
 int get_task_count() { return game().task_count(); }
 std::string get_task_name(int index) { return game().task_at(index).name; }
@@ -80,6 +107,7 @@ float get_metric_power_burn(int index) { return game().telemetry_at(index).power
 
 void advance_day() { game().advance_day(); }
 void toggle_pause() { game().toggle_pause(); }
+void restart_game() { game().initialize(); }
 void dispatch_scavenge() { game().dispatch_scavenge(); }
 void select_room(int room_id) { game().select_room(static_cast<std::uint32_t>(std::max(0, room_id))); }
 
@@ -140,6 +168,8 @@ EMSCRIPTEN_BINDINGS(root_decay_api) {
     emscripten::function("getInmateFatigue", &get_inmate_fatigue);
     emscripten::function("getInmateHealth", &get_inmate_health);
     emscripten::function("getInmatePanic", &get_inmate_panic);
+    emscripten::function("getInmateMorale", &get_inmate_morale);
+    emscripten::function("getInmateId", &get_inmate_id);
     emscripten::function("getInmateRoom", &get_inmate_room);
 
     emscripten::function("getTaskCount", &get_task_count);
@@ -164,8 +194,20 @@ EMSCRIPTEN_BINDINGS(root_decay_api) {
 
     emscripten::function("advanceDay", &advance_day);
     emscripten::function("togglePause", &toggle_pause);
+    emscripten::function("restartGame", &restart_game);
     emscripten::function("dispatchScavenge", &dispatch_scavenge);
     emscripten::function("selectRoom", &select_room);
+    emscripten::function("assignInmate", &assign_inmate);
+    emscripten::function("treatInmate", &treat_inmate);
+    emscripten::function("repairSystem", &repair_system);
+    emscripten::function("damageSystem", &damage_system);
+    emscripten::function("triggerBreach", &trigger_breach);
+    emscripten::function("getCurrentWave", &get_current_wave);
+    emscripten::function("getWaveTimer", &get_wave_timer);
+    emscripten::function("startWave", &start_wave);
+    emscripten::function("defendRoom", &defend_room);
+    emscripten::function("allocateRations", &allocate_rations);
+    emscripten::function("getInmateHomeRoom", &get_inmate_home_room);
 }
 
 int main() {
